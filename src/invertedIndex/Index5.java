@@ -388,15 +388,10 @@ static boolean stopWord(String word) {
 
     //----------------------------------------------------------------------------  
     Posting intersect(Posting pL1, Posting pL2) {
-        // Initialize the answer to an empty Posting
         Posting answer = null;
         Posting last = null;
-
-        // While both postings are not empty
         while (pL1 != null && pL2 != null) {
-            // If the document IDs match
             if (pL1.docId == pL2.docId) {
-                // Add the document ID to the answer
                 if (answer == null) {
                     answer = new Posting(pL1.docId);
                     last = answer;
@@ -404,18 +399,15 @@ static boolean stopWord(String word) {
                     last.next = new Posting(pL1.docId);
                     last = last.next;
                 }
-                // Move to the next postings in both lists
                 pL1 = pL1.next;
                 pL2 = pL2.next;
-            } else if (pL1.docId < pL2.docId) { // If docID(pL1) < docID(pL2)
-                // Move to the next posting in the first list
+            } else if (pL1.docId < pL2.docId) {
+
                 pL1 = pL1.next;
-            } else { // If docID(pL1) > docID(pL2)
-                // Move to the next posting in the second list
+            } else {
                 pL2 = pL2.next;
             }
         }
-        // Return the intersection
         return answer;
     }
     public void createStore(String storageName) {
@@ -437,7 +429,7 @@ static boolean stopWord(String word) {
             BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
             try {
                 phrase = in.readLine();
-                System.out.println(find_24_01(phrase));
+                System.out.println(find_07a(phrase));
             } catch (Exception e) {
                 e.printStackTrace();
                 break;
@@ -547,22 +539,14 @@ static boolean stopWord(String word) {
     }
     public String find_07a(String phrase) {
         System.out.println("-------------------------  find_07 -------------------------");
-
         StringBuilder result = new StringBuilder();
         String[] words = phrase.split("\\W+");
-        int len = words.length;
-        SortedScore sortedScore = new SortedScore();
-
         double[] scores = new double[N];
         double[] docLengths = new double[N];
-
-        // Initialize scores and doc lengths
         for (int i = 0; i < N; i++) {
             scores[i] = 0;
             docLengths[i] = 0;
         }
-
-        // Calculate query term weights and document scores
         for (String word : words) {
             word = word.toLowerCase();
             if (stopWord(word)) {
@@ -583,8 +567,6 @@ static boolean stopWord(String word) {
                 p = p.next;
             }
         }
-
-        // Normalize scores by document lengths
         for (int i = 0; i < N; i++) {
             SourceRecord src = sources.get(i);
             if (src != null) {
@@ -592,11 +574,8 @@ static boolean stopWord(String word) {
                 scores[i] /= docLengths[i];
             }
         }
-
-        // Collect the top K results
-        int K = 10;  // you can adjust this value as needed
+        int K = 10;
         PriorityQueue<DocScore> topScores = new PriorityQueue<>(K);
-
         for (int i = 0; i < N; i++) {
             if (scores[i] > 0) {
                 topScores.add(new DocScore(i, scores[i]));
@@ -605,14 +584,10 @@ static boolean stopWord(String word) {
                 }
             }
         }
-
-        // Build the result string from the top K results
         while (!topScores.isEmpty()) {
             DocScore ds = topScores.poll();
             result.insert(0, "DocID: " + ds.docId + " Score: " + ds.score + "\n");
         }
-
-        System.out.println(result.toString());
         return result.toString();
     }
 
@@ -632,7 +607,7 @@ static boolean stopWord(String word) {
     }
 
 //=========================================    
-    /*public boolean storageFileExists(String storageName){
+/*    public boolean storageFileExists(String storageName){
         java.io.File f = new java.io.File("/home/ehab/tmp11/rl/"+storageName);
         if (f.exists() && !f.isDirectory())
             return true;
