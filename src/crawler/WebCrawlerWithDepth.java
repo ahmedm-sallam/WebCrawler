@@ -164,12 +164,10 @@ public class WebCrawlerWithDepth {
 
 //==============================================================================
     public static void main(String[] args) {
-
         WebCrawlerWithDepth wc = new WebCrawlerWithDepth();
-
         invertedIndex.Index5 index = wc.initialize("test"); //   ukraine
         index.printDictionary();
-        System.out.println(index.find_24_01("narmer giza pyramid"));
+        System.out.println(index.find_07a("narmer giza pyramid"));
         index.searchLoop();
     }
 }

@@ -545,6 +545,92 @@ static boolean stopWord(String word) {
             e.printStackTrace();
         }
     }
+    public String find_07a(String phrase) {
+        System.out.println("-------------------------  find_07 -------------------------");
+
+        StringBuilder result = new StringBuilder();
+        String[] words = phrase.split("\\W+");
+        int len = words.length;
+        SortedScore sortedScore = new SortedScore();
+
+        double[] scores = new double[N];
+        double[] docLengths = new double[N];
+
+        // Initialize scores and doc lengths
+        for (int i = 0; i < N; i++) {
+            scores[i] = 0;
+            docLengths[i] = 0;
+        }
+
+        // Calculate query term weights and document scores
+        for (String word : words) {
+            word = word.toLowerCase();
+            if (stopWord(word)) {
+                continue;
+            }
+            word = stemWord(word);
+
+            DictEntry entry = index.get(word);
+            if (entry == null) {
+                continue;
+            }
+
+            double idf = log10(N / (double) entry.doc_freq);
+            Posting p = entry.pList;
+            while (p != null) {
+                double tfidf = (1 + log10((double) p.dtf)) * idf;
+                scores[p.docId] += tfidf;
+                p = p.next;
+            }
+        }
+
+        // Normalize scores by document lengths
+        for (int i = 0; i < N; i++) {
+            SourceRecord src = sources.get(i);
+            if (src != null) {
+                docLengths[i] = src.length > 0 ? src.length : 1;  // avoid division by zero
+                scores[i] /= docLengths[i];
+            }
+        }
+
+        // Collect the top K results
+        int K = 10;  // you can adjust this value as needed
+        PriorityQueue<DocScore> topScores = new PriorityQueue<>(K);
+
+        for (int i = 0; i < N; i++) {
+            if (scores[i] > 0) {
+                topScores.add(new DocScore(i, scores[i]));
+                if (topScores.size() > K) {
+                    topScores.poll();
+                }
+            }
+        }
+
+        // Build the result string from the top K results
+        while (!topScores.isEmpty()) {
+            DocScore ds = topScores.poll();
+            result.insert(0, "DocID: " + ds.docId + " Score: " + ds.score + "\n");
+        }
+
+        System.out.println(result.toString());
+        return result.toString();
+    }
+
+    private static class DocScore implements Comparable<DocScore> {
+        int docId;
+        double score;
+
+        public DocScore(int docId, double score) {
+            this.docId = docId;
+            this.score = score;
+        }
+
+        @Override
+        public int compareTo(DocScore other) {
+            return Double.compare(this.score, other.score);
+        }
+    }
+
 //=========================================    
     /*public boolean storageFileExists(String storageName){
         java.io.File f = new java.io.File("/home/ehab/tmp11/rl/"+storageName);
